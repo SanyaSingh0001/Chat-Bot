@@ -1,6 +1,9 @@
 import express from 'express';
 import dotenv from 'dotenv';
-dotenv.config();
+dotenv.config({
+    path:"./.env"
+});
+console.log("Test env :", process.env.CLOUDINARY_API_KEY);
 import {createServer} from 'node:http'; // used to create a server for socket.io
  import {Server} from 'socket.io';
 import cors from 'cors';
@@ -11,30 +14,39 @@ import userRoutes from "./routes/user.routes.js";
 
 const app = express();
 const server = createServer(app);
-const io = connectToSocket(server);
+
 app.set("port", (process.env.PORT || 5000));
+
+
+
+
+
 app.use(cors({
-    origin: "http://localhost:5173", // Aapke Vite frontend ka URL
+    origin: process.env.FRONTEND_URL || "http://localhost:5173", // Aapke Vite frontend ka URL
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
 }));
-
-
-
-
+const io = connectToSocket(server);
 app.use(express.json({limit:"40kb"}));
 app.use(express.urlencoded({limit:"40kb",extended:true}));
 
 
-app.use("/api/v1/users",userRoutes);
-//app.use("/api/v2/users", newUserRoutes);
 
 app.use((req, res, next) => {
     console.log(`Incoming Request: ${req.method} ${req.url}`);
     next();
 });
 
-;app.get("/home",(req,res)=>{
+app.use("/public", express.static("public")); // Static folder for uploaded files (avatars)
+
+
+
+app.use("/api/v1/users",userRoutes);
+//app.use("/api/v2/users", newUserRoutes);
+
+
+
+app.get("/home",(req,res)=>{
     return res.json({message:"Welcome to the home page"});
 })
 
